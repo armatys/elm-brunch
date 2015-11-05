@@ -21,17 +21,17 @@
     }
 
     ElmCompiler.prototype.compile = function(data, file, callback) {
-      var modules = this.elm_config.mainModules || [file];
-      var file_is_module_index = modules.indexOf(file);
-      if (file_is_module_index >= 0) {
-        modules = [modules[file_is_module_index]];
-      }
-      var outputFolder = this.elm_config.outputFolder;
+      callback(null, null);
+    };
+
+    ElmCompiler.prototype.onCompile = function(files) {
       var elmFolder = this.elm_config.elmFolder;
-      return modules.forEach(function(src) {
-        var moduleName;
-        moduleName = path.basename(src, '.elm').toLowerCase();
-        return elmCompile(src, elmFolder, path.join(outputFolder, moduleName + '.js'), callback);
+      var modules = this.elm_config.mainModules;
+      var outputFolder = this.elm_config.outputFolder;
+
+      modules.forEach(function(src) {
+        var moduleName = path.basename(src, '.elm').toLowerCase();
+        return elmCompile(src, elmFolder, path.join(outputFolder, moduleName + '.js'));
       });
     };
 
@@ -47,8 +47,10 @@
     info += ', to ' + outputFile;
     console.log(info);
 
-    childProcess.exec('elm make --yes --output ' + outputFile + ' ' + srcFile, {cwd: elmFolder}, function (error, stdout, stderr){
-      return callback(error, error ? stderr : null);
+    childProcess.exec('elm make --yes --output ' + outputFile + ' ' + srcFile, {cwd: elmFolder}, function (error, stdout, stderr) {
+      if (callback) {
+        callback(error, error ? stderr : null);
+      }
     });
   };
 
